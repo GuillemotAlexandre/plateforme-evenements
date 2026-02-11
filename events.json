@@ -5,7 +5,7 @@
     "description": "on doit faire le diapo pour l'oral de mecredi matin",
     "date": "2026-02-11",
     "location": "blois",
-    "votes": 1
+    "votes": 26
   },
   {
     "id": "a3091651-2982-429b-9fe4-f9505538f822",
@@ -21,7 +21,7 @@
     "description": "jhgngfbvcx",
     "date": "2026-01-31",
     "location": "blois",
-    "votes": 1
+    "votes": 7
   },
   {
     "id": "2d0da9b2-f721-4bf8-baf4-da9eaaf56dc7",
@@ -37,6 +37,14 @@
     "description": "b",
     "date": "2026-01-31",
     "location": "blois",
+    "votes": 0
+  },
+  {
+    "id": "2caad437-dc07-44df-a03a-c5c6b05fa920",
+    "title": "coucou",
+    "description": "salut salut",
+    "date": "2026-02-06",
+    "location": "chez alexandre",
     "votes": 0
   }
 ]

@@ -4,71 +4,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <title>Détails de l'événement</title>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-blue-600 p-4 text-white shadow-md">
+<body class="bg-gray-50 font-sans">
+    <nav class="bg-blue-600 p-4 text-white shadow-md z-10 relative">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="index.html" class="text-xl font-bold">CollabEvents</a>
-            <a href="index.html" class="hover:underline text-sm">← Retour</a>
+            <a href="index.html" class="text-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform">
+                📅 CollabEvents
+            </a>
+            <a href="index.html" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 hover:-translate-x-1">
+                ← Retour à la liste
+            </a>
         </div>
     </nav>
 
-    <main class="container mx-auto mt-12 p-6 max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100">
-        <div id="loading" class="text-center py-20 text-gray-400 animate-pulse text-lg">Chargement des informations...</div>
+    <main class="container mx-auto mt-12 p-6 max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 min-h-[400px] overflow-hidden">
+        <div id="loading" class="flex flex-col items-center justify-center h-64 text-gray-400">
+            <div class="text-4xl mb-4" id="spinner">⌛</div>
+            <div class="text-lg font-medium">Chargement des informations...</div>
+        </div>
         
         <div id="content" class="hidden">
-            <h1 id="event-title" class="text-4xl font-black text-blue-600 mb-2"></h1>
-            <div class="flex items-center space-x-4 mb-8 text-gray-500 font-medium">
-                <span id="event-date" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm"></span>
-                <span id="event-location" class="italic"></span>
+            <div class="border-b border-gray-100 pb-6 mb-6 anim-item opacity-0 translate-y-4">
+                <h1 id="event-title" class="text-4xl font-black text-gray-900 mb-4 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400"></h1>
+                <div class="flex flex-wrap gap-4 text-sm font-medium">
+                    <span class="flex items-center text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm hover:scale-105 transition-transform">
+                        📅 <span id="event-date" class="ml-2"></span>
+                    </span>
+                    <span class="flex items-center text-gray-600 bg-gray-100 px-3 py-1 rounded-full shadow-sm hover:scale-105 transition-transform">
+                        📍 <span id="event-location" class="ml-2"></span>
+                    </span>
+                </div>
             </div>
             
-            <div class="prose max-w-none mb-10 text-gray-700 leading-relaxed text-lg border-l-4 border-blue-200 pl-6">
+            <div class="prose max-w-none mb-10 text-gray-600 leading-relaxed text-lg anim-item opacity-0 translate-y-4">
                 <p id="event-description"></p>
             </div>
             
-            <div class="flex items-center justify-between border-t border-gray-100 pt-8">
+            <div class="bg-gray-50 rounded-xl p-6 flex items-center justify-between border border-gray-200 anim-item opacity-0 translate-y-4 shadow-inner">
                 <div>
-                    <p class="text-sm text-gray-400 uppercase tracking-widest font-bold">Populaire à</p>
-                    <span id="event-votes" class="text-3xl font-extrabold text-gray-800"></span>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Popularité</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="event-votes" class="text-3xl font-extrabold text-blue-600 inline-block"></span>
+                        <span class="text-gray-500 font-medium">votes</span>
+                    </div>
                 </div>
-                <button id="vote-btn" class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">
-                    Voter (+1)
+                <button id="vote-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 overflow-hidden relative group">
+                    <span class="relative z-10 flex items-center gap-2"><span>👍</span> Voter pour cet event</span>
+                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
                 </button>
             </div>
         </div>
     </main>
 
     <script>
+        // Animation du spinner pendant le chargement
+        gsap.to("#spinner", { rotation: 360, repeat: -1, duration: 2, ease: "linear" });
+
         const params = new URLSearchParams(window.location.search);
         const eventId = params.get('id');
+        const contentDiv = document.getElementById('content');
+        const loadingDiv = document.getElementById('loading');
+        let currentVotes = 0;
 
         async function loadDetails() {
-            if (!eventId) return;
-            
-            const response = await fetch(`/events/${eventId}`);
-            if (!response.ok) {
-                document.getElementById('loading').innerHTML = "❌ Événement introuvable.";
+            if (!eventId) {
+                window.location.href = 'index.html';
                 return;
             }
             
-            const event = await response.json();
-            
-            document.getElementById('event-title').innerText = event.title;
-            document.getElementById('event-description').innerText = event.description;
-            document.getElementById('event-date').innerText = event.date;
-            document.getElementById('event-location').innerText = `📍 ${event.location}`;
-            document.getElementById('event-votes').innerText = `${event.votes} votes`;
-            
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('content').classList.remove('hidden');
+            try {
+                // Simulation légère latence pour apprécier l'animation (facultatif)
+                // await new Promise(r => setTimeout(r, 400));
+
+                const response = await fetch(`/events/${eventId}`);
+                if (!response.ok) throw new Error("Événement non trouvé");
+                
+                const event = await response.json();
+                
+                document.getElementById('event-title').innerText = event.title;
+                document.getElementById('event-description').innerText = event.description;
+                document.getElementById('event-date').innerText = event.date;
+                document.getElementById('event-location').innerText = event.location;
+                
+                // Animation du compteur (de 0 à la valeur actuelle)
+                updateVoteDisplay(event.votes, false); 
+                currentVotes = event.votes;
+
+                // Transition Loading -> Content
+                gsap.to(loadingDiv, { 
+                    opacity: 0, 
+                    duration: 0.3, 
+                    onComplete: () => {
+                        loadingDiv.classList.add('hidden');
+                        contentDiv.classList.remove('hidden');
+                        
+                        // Animation d'entrée des éléments du contenu (Titre, puis desc, puis vote)
+                        gsap.to(".anim-item", {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.8,
+                            stagger: 0.2, // Délai entre chaque élément
+                            ease: "power3.out"
+                        });
+                    }
+                });
+
+            } catch (error) {
+                loadingDiv.innerHTML = `<div class="text-red-500 text-center scale-0" id="error-msg"><div class="text-4xl mb-2">❌</div><p>Impossible de charger l'événement.</p></div>`;
+                gsap.to("#error-msg", { scale: 1, duration: 0.5, ease: "elastic.out(1, 0.5)" });
+            }
+        }
+
+        // Fonction pour animer le chiffre
+        function updateVoteDisplay(newValue, animate = true) {
+            const el = document.getElementById('event-votes');
+            if (animate) {
+                gsap.to(el, {
+                    innerHTML: newValue,
+                    duration: 1,
+                    snap: { innerHTML: 1 }, // Pour n'avoir que des nombres entiers
+                    ease: "power1.out"
+                });
+            } else {
+                el.innerText = newValue;
+            }
         }
 
         document.getElementById('vote-btn').onclick = async () => {
-            await fetch(`/events/${eventId}/vote`, { method: 'POST' });
-            loadDetails();
+            const btn = document.getElementById('vote-btn');
+            
+            // Animation du clic sur le bouton (Elasticité)
+            gsap.to(btn, { scale: 0.9, duration: 0.1, yoyo: true, repeat: 1 });
+
+            try {
+                await fetch(`/events/${eventId}/vote`, { method: 'POST' });
+                
+                // On met à jour les données
+                const response = await fetch(`/events/${eventId}`);
+                const event = await response.json();
+                
+                // Animation du compteur qui monte
+                updateVoteDisplay(event.votes, true);
+
+                // Confetti effet visuel (simple flash vert)
+                gsap.fromTo(btn, 
+                    { backgroundColor: "#2563eb" }, 
+                    { backgroundColor: "#10b981", duration: 0.2, yoyo: true, repeat: 1 }
+                );
+
+            } catch (err) {
+                // Animation de tremblement en cas d'erreur
+                gsap.to(btn, { x: 10, duration: 0.1, yoyo: true, repeat: 5 });
+            }
         };
+
+        // Animation d'entrée de la nav
+        gsap.from("nav", { y: -100, duration: 0.8, ease: "power3.out" });
 
         loadDetails();
     </script>

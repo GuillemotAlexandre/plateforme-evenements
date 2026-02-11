@@ -4,26 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <title>CollabEvents - Accueil</title>
 </head>
-<body class="bg-gray-100 font-sans">
-    <nav class="bg-blue-600 p-4 text-white shadow-lg">
+<body class="bg-gray-100 font-sans opacity-0" style="visibility: hidden;"> <nav class="bg-blue-600 p-4 text-white shadow-lg z-50 relative transform -translate-y-full">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">📅 CollabEvents</h1>
-            <a href="add.html" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+            <h1 class="text-2xl font-bold tracking-tight">📅 CollabEvents</h1>
+            <a href="add.html" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 hover:scale-105 transition transform duration-200 shadow-sm">
                 + Ajouter un événement
             </a>
         </div>
     </nav>
 
     <main class="container mx-auto py-10 px-4">
-        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center uppercase tracking-wide">Événements à venir</h2>
-        <div id="event-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <h2 id="page-title" class="text-3xl font-bold text-gray-800 mb-8 text-center uppercase tracking-wide opacity-0 translate-y-10">
+            Événements à venir
+        </h2>
+        <div id="event-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 perspective-1000">
             </div>
     </main>
 
     <script>
-        // Charger les événements au démarrage
+        // Animation d'entrée de page
+        window.addEventListener('load', () => {
+            document.body.style.visibility = 'visible';
+            
+            // Timeline pour séquencer les animations
+            const tl = gsap.timeline();
+
+            tl.to("body", { opacity: 1, duration: 0.5 })
+              .to("nav", { y: 0, duration: 0.8, ease: "power3.out" }, "-=0.3")
+              .to("#page-title", { opacity: 1, y: 0, duration: 0.8, ease: "back.out(1.7)" }, "-=0.5");
+        });
+
         async function loadEvents() {
             try {
                 const res = await fetch('/events');
@@ -31,44 +44,62 @@
                 const container = document.getElementById('event-list');
                 
                 if (events.length === 0) {
-                    container.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">Aucun événement trouvé.</p>';
+                    container.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10 fade-in">Aucun événement trouvé.</p>';
+                    gsap.from(".fade-in", { opacity: 0, y: 20, duration: 0.5 });
                     return;
                 }
 
+                // On génère le HTML
                 container.innerHTML = events.map(event => `
-                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-100 p-6 flex flex-col h-full">
+                    <div class="event-card opacity-0 transform translate-y-12 bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 p-6 flex flex-col h-full hover:-translate-y-2 cursor-default group">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold text-gray-900 leading-tight">${event.title}</h3>
-                            <span class="bg-blue-50 text-blue-600 text-xs px-2.5 py-1 rounded-full font-bold border border-blue-100 text-nowrap">
+                            <h3 class="text-xl font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors">${event.title}</h3>
+                            <span class="bg-blue-50 text-blue-600 text-xs px-2.5 py-1 rounded-full font-bold border border-blue-100 text-nowrap shadow-sm">
                                 ${event.votes} votes
                             </span>
                         </div>
                         <p class="text-gray-500 text-sm mb-6 flex-grow italic line-clamp-3">"${event.description}"</p>
-                        <div class="text-gray-400 text-sm space-y-2 mb-6">
+                        <div class="text-gray-400 text-sm space-y-2 mb-6 border-t pt-4 border-gray-50">
                             <p class="flex items-center">📍 <span class="ml-2 font-medium text-gray-600">${event.location}</span></p>
                             <p class="flex items-center">📅 <span class="ml-2 font-medium text-gray-600">${event.date}</span></p>
                         </div>
-                        <div class="flex gap-3">
+                        <div class="flex gap-3 mt-auto">
                             <a href="details.html?id=${event.id}" 
-                               class="flex-1 text-center bg-gray-50 text-gray-700 py-2.5 rounded-xl hover:bg-gray-200 font-bold transition duration-200">
+                               class="flex-1 text-center bg-gray-50 text-gray-700 py-2.5 rounded-xl hover:bg-gray-200 font-bold transition duration-200 active:scale-95">
                                 Détails
                             </a>
-                            <button onclick="vote('${event.id}')" 
-                                    class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold shadow-md transition duration-200">
+                            <button onclick="vote('${event.id}', this)" 
+                                    class="vote-btn flex-1 bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold shadow-md transition duration-200 active:scale-95">
                                 Voter
                             </button>
                         </div>
                     </div>
                 `).join('');
+
+                // L'ANIMATION MAGIQUE ICI : Stagger (décalage en cascade)
+                gsap.to(".event-card", {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    stagger: 0.15, // 0.15s entre chaque carte
+                    ease: "back.out(1.2)", // Effet de rebond
+                    delay: 0.2
+                });
+
             } catch (err) {
                 console.error("Erreur chargement:", err);
             }
         }
 
-        async function vote(id) {
+        async function vote(id, btnElement) {
             try {
-                // Syntaxe corrigée sans anti-slash \
+                // Petite animation immédiate sur le bouton
+                gsap.to(btnElement, { scale: 0.9, duration: 0.1, yoyo: true, repeat: 1 });
+                
                 await fetch(`/events/${id}/vote`, { method: 'POST' });
+                
+                // Au lieu de tout recharger brutalement, on pourrait mettre à jour le DOM, 
+                // mais pour garder ton code simple, on recharge tout.
                 loadEvents();
             } catch (err) {
                 console.error("Erreur vote:", err);

@@ -4,61 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <title>Ajouter un événement</title>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-blue-600 p-4 text-white shadow-md mb-8">
+<body class="bg-gray-50 overflow-hidden"> <nav class="bg-blue-600 p-4 text-white shadow-md mb-8 z-50 relative">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="index.html" class="text-xl font-bold italic">CollabEvents</a>
-            <a href="index.html" class="hover:underline text-sm">← Retour à l'accueil</a>
+            <a href="index.html" class="text-xl font-bold italic flex items-center gap-2">
+                <span id="logo-icon" class="inline-block">📅</span> CollabEvents
+            </a>
+            <a href="index.html" class="hover:underline text-sm opacity-80 hover:opacity-100 transition">← Retour à l'accueil</a>
         </div>
     </nav>
 
-    <div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Créer un événement</h2>
+    <div id="form-container" class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-2xl border border-gray-100 transform translate-y-20 opacity-0">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 border-l-4 border-blue-500 pl-4">Créer un événement</h2>
         
         <form id="eventForm" class="space-y-5">
-            <div>
+            <div class="input-group opacity-0 translate-x-[-20px]">
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Titre de l'événement</label>
                 <input type="text" id="title" placeholder="Ex: Tournoi de Foot" required 
-                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50 focus:bg-white">
             </div>
 
-            <div>
+            <div class="input-group opacity-0 translate-x-[-20px]">
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
                 <textarea id="description" rows="3" placeholder="Décrivez l'événement..." required 
-                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
+                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50 focus:bg-white"></textarea>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <div>
+                <div class="input-group opacity-0 translate-x-[-20px]">
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Date</label>
                     <input type="date" id="date" required 
-                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-gray-50 focus:bg-white">
                 </div>
-                <div>
+                <div class="input-group opacity-0 translate-x-[-20px]">
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Lieu</label>
                     <input type="text" id="location" placeholder="Ex: Tours" required 
-                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-gray-50 focus:bg-white">
                 </div>
             </div>
 
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md transition duration-200">
-                Publier l'événement
-            </button>
+            <div class="input-group opacity-0 translate-y-4 pt-2">
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md transform transition duration-200">
+                    Publier l'événement
+                </button>
+            </div>
         </form>
     </div>
 
     <script>
+        // Séquence d'animation au chargement
+        window.onload = () => {
+            const tl = gsap.timeline();
+
+            // 1. La navbar tombe
+            tl.from("nav", { y: -80, duration: 0.6, ease: "power2.out" })
+            
+            // 2. Le container du formulaire monte
+              .to("#form-container", { 
+                  y: 0, 
+                  opacity: 1, 
+                  duration: 0.8, 
+                  ease: "back.out(1.2)" 
+              }, "-=0.3") // commence un peu avant la fin de la navbar
+
+            // 3. Les champs du formulaire glissent un par un
+              .to(".input-group", {
+                  x: 0,
+                  y: 0,
+                  opacity: 1,
+                  duration: 0.5,
+                  stagger: 0.1, // Décalage entre chaque champ
+                  ease: "power2.out"
+              }, "-=0.4");
+              
+            // Animation du logo (boucle infinie subtile)
+            gsap.to("#logo-icon", { rotation: 10, duration: 2, yoyo: true, repeat: -1, ease: "sine.inOut" });
+        };
+
+        // Animation du bouton au survol via JS (plus robuste que CSS)
+        const btn = document.getElementById("submit-btn");
+        btn.addEventListener("mouseenter", () => gsap.to(btn, { scale: 1.02, duration: 0.2 }));
+        btn.addEventListener("mouseleave", () => gsap.to(btn, { scale: 1, duration: 0.2 }));
+
         document.getElementById('eventForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // Animation du bouton "envoi"
+            const originalText = btn.innerText;
+            btn.innerText = "🚀 Envoi en cours...";
+            gsap.to(btn, { width: "95%", duration: 0.2, repeat: 1, yoyo: true }); // Petit effet de contraction
+
             const eventData = {
                 title: document.getElementById('title').value,
                 description: document.getElementById('description').value,
                 date: document.getElementById('date').value,
                 location: document.getElementById('location').value
             };
+
+            // Simulation rapide pour voir l'effet
+            // await new Promise(r => setTimeout(r, 800));
 
             const response = await fetch('/events', {
                 method: 'POST',
@@ -67,10 +113,22 @@
             });
 
             if (response.ok) {
-                alert('Événement ajouté !');
-                window.location.href = 'index.html';
+                // Animation de succès avant redirection
+                btn.classList.remove('bg-blue-600');
+                btn.classList.add('bg-green-500');
+                btn.innerText = "✅ Événement créé !";
+                
+                // Le formulaire part vers le haut
+                gsap.to("#form-container", { y: -50, opacity: 0, duration: 0.5, delay: 0.5, onComplete: () => {
+                    window.location.href = 'index.html';
+                }});
             } else {
-                alert('Erreur lors de l\'envoi.');
+                btn.innerText = "❌ Erreur";
+                gsap.to(btn, { x: 10, duration: 0.1, repeat: 5, yoyo: true }); // Shake
+                setTimeout(() => { 
+                    btn.innerText = originalText;
+                    btn.classList.add('bg-blue-600'); 
+                }, 2000);
             }
         });
     </script>
