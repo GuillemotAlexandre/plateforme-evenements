@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>CollabEvents - Accueil</title>
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-blue-600 p-4 text-white shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">📅 CollabEvents</h1>
+            <a href="add.html" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                + Ajouter un événement
+            </a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto py-10 px-4">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center uppercase tracking-wide">Événements à venir</h2>
+        <div id="event-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+    </main>
+
+    <script>
+        // Charger les événements au démarrage
+        async function loadEvents() {
+            try {
+                const res = await fetch('/events');
+                const events = await res.json();
+                const container = document.getElementById('event-list');
+                
+                if (events.length === 0) {
+                    container.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">Aucun événement trouvé.</p>';
+                    return;
+                }
+
+                container.innerHTML = events.map(event => `
+                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-100 p-6 flex flex-col h-full">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold text-gray-900 leading-tight">${event.title}</h3>
+                            <span class="bg-blue-50 text-blue-600 text-xs px-2.5 py-1 rounded-full font-bold border border-blue-100 text-nowrap">
+                                ${event.votes} votes
+                            </span>
+                        </div>
+                        <p class="text-gray-500 text-sm mb-6 flex-grow italic line-clamp-3">"${event.description}"</p>
+                        <div class="text-gray-400 text-sm space-y-2 mb-6">
+                            <p class="flex items-center">📍 <span class="ml-2 font-medium text-gray-600">${event.location}</span></p>
+                            <p class="flex items-center">📅 <span class="ml-2 font-medium text-gray-600">${event.date}</span></p>
+                        </div>
+                        <div class="flex gap-3">
+                            <a href="details.html?id=${event.id}" 
+                               class="flex-1 text-center bg-gray-50 text-gray-700 py-2.5 rounded-xl hover:bg-gray-200 font-bold transition duration-200">
+                                Détails
+                            </a>
+                            <button onclick="vote('${event.id}')" 
+                                    class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold shadow-md transition duration-200">
+                                Voter
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Erreur chargement:", err);
+            }
+        }
+
+        async function vote(id) {
+            try {
+                // Syntaxe corrigée sans anti-slash \
+                await fetch(`/events/${id}/vote`, { method: 'POST' });
+                loadEvents();
+            } catch (err) {
+                console.error("Erreur vote:", err);
+            }
+        }
+
+        loadEvents();
+    </script>
+</body>
+</html>
